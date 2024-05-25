@@ -19,7 +19,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: [true, "password is required"],
         select:false
-    }
+    },
+    passwordChangedAt:Date
 },{timestamps: true});
 
 
@@ -47,4 +48,15 @@ userSchema.methods.comparePassword = async function validatePassword(pswd, pswdD
    return await bcrypt.compare(pswd,pswdDB)
 };
 
+
+
+// check if the password change  
+userSchema.methods.isPasswordChange = async function (JWT_Timestamp){
+    if(this.passwordChangedAt){
+        const pswdChangedTimeStamps = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+        // console.log(pswdChangedTimeStamps, JWT_Timestamp);
+        return JWT_Timestamp < pswdChangedTimeStamps
+    }
+    return false;
+}
 export const User = mongoose.model("User", userSchema);
