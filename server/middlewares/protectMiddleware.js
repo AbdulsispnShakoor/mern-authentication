@@ -11,15 +11,17 @@ export const protectMiddleware =asyncHandler(async(req,res,next) => {
     const authHeader = req.headers.authorization;
     
     const token = authHeader && authHeader.split(' ')[1];
-    console.log(token);
+    // console.log(token);
     if(!token) {
         return next(new CustomError('Not Authorized',401));
     }
     try {
         const decoded =await util.promisify(jwt.verify)(token, process.env.JWT_SECRET);
+        // console.log(decoded.id)
 
         // checking if the user exist 
-        const user = await User.findById(decoded.id);
+        const user = await User.findById(decoded?.id);
+        // console.log(user)
         if(!user) {
             return next(new CustomError('Not Authorized',401));
         }
@@ -35,4 +37,13 @@ export const protectMiddleware =asyncHandler(async(req,res,next) => {
     } catch (error) {
         next(new CustomError(401, 'Not Authorized'));
     }
-})
+});
+
+export const restriction = (role) =>{
+    return (req,res,next) => {
+        if(req.user.role !== role){
+            return next(new CustomError('You do not have the permission to perform this action',403));
+        }
+        next();
+    }
+}
